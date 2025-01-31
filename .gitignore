@@ -9,3 +9,4 @@
 *.so
 bin/
 build/
+main
