@@ -1,0 +1,11 @@
+# VSCodium Konfigurationsordner
+.vscode/
+
+# C++ Build-Dateien und Binärdateien
+*.o
+*.out
+*.exe
+*.a
+*.so
+bin/
+build/
