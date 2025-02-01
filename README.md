@@ -16,4 +16,7 @@ Projekt für Übung von Konzepten wie dynamischer Speicherverwaltung und  Iterat
 - **main.cpp**
 	Beispieldatei, um Funktionsweise zu veranschaulichen.
 	
+## ToDo
+- Kommentare aufräumen
+	
 
