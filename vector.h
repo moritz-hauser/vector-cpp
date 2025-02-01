@@ -3,7 +3,6 @@
 #include <iostream>
 #include <stdexcept>
 
-// utest3 passed, template test ausgabe korrekt
 template<typename T>
 class Vector {
     public:
@@ -20,111 +19,111 @@ class Vector {
     using const_pointer = const value_type*;
 
     private:
-    // instanzvariablen
-    static constexpr size_type min_sz = 10;
-    size_type max_sz;
-    size_type sz;
-    pointer values;
+    static constexpr size_type MIN_SIZE = 10;
+    size_type capacity_;
+    size_type size_;
+    pointer values_;
 
-    void realloc(size_type new_sz) {
-        pointer new_values{new value_type[new_sz]};
-        for(size_type i {0}; i<sz; ++i)
-            new_values[i]=values[i];
-        delete[] values;
-        values = new_values;
-        max_sz = new_sz;
+    void realloc(size_type new_size) {
+        pointer new_values {new value_type[new_size]};
+        std::copy(values_, values_ + size_, new_values);
+        delete[] values_;
+        values_ = new_values;
+        capacity_ = new_size;
     }
 
     size_type grow() {
-        return max_sz*2;
+        return capacity_*2;
     }
 
     public:
     // Konstruktoren
-    Vector(): max_sz{min_sz}, sz{0}, values{new value_type[min_sz]} {}
-    Vector(size_type max_sz): max_sz{max_sz<min_sz?min_sz:max_sz}, sz{0}, values{new value_type[this->max_sz]} {}
+    Vector(): capacity_{MIN_SIZE}, size_{0}, values_{new value_type[MIN_SIZE]} {}
+    Vector(size_type max_sz): capacity_{max_sz<MIN_SIZE?MIN_SIZE:max_sz}, size_{0}, values_{new value_type[this->capacity_]} {}
     Vector(std::initializer_list<value_type> ilist): Vector(ilist.size()) {
         for(const auto& elem : ilist)
-            values[sz++]=elem;
+            values_[size_++]=elem;
     }
     // Kopierkonstruktor
-    Vector(const Vector& src): Vector(src.sz) {
-        for(; sz<src.sz; ++sz)
-            values[sz]=src.values[sz];
+    Vector(const Vector& src): Vector(src.size_) {
+        for(; size_<src.size_; ++size_)
+            values_[size_]=src.values_[size_];
     }
     // Destruktor
     ~Vector() {
-        delete[] values;
+        delete[] values_;
     }
 
     // operator=
     Vector& operator=(Vector src) {
-        std::swap(max_sz,src.max_sz);
-        std::swap(sz,src.sz);
-        std::swap(values,src.values);
+        std::swap(capacity_,src.capacity_);
+        std::swap(size_,src.size_);
+        std::swap(values_,src.values_);
         return *this;
     }
 
     // push_back
     void push_back(const_reference val) {
-        if(sz>=max_sz)
+        if(size_>=capacity_)
             realloc(grow());
-        values[sz++]=val;
+        values_[size_++]=val;
     }
     
-    // operator []
+    // operator[]
     reference operator[](size_type index) {
-        if(index>=sz)
+        if(index>=size_)
             throw std::runtime_error{"index out of bounds"};
-        return values[index];
+        return values_[index];
     }
 
     // operator[] für const vektoren
     const_reference operator[] (size_type index) const {
-        if(index>=sz)
+        if(index>=size_)
             throw std::runtime_error{"index out of bounds"};
-        return values[index];
+        return values_[index];
     }
 
     // size()
     size_t size() const {
-        return sz;
+        return size_;
     }
 
     // empty()
     bool empty() const {
-        return sz==0;
+        return size_==0;
     }
 
     // clear()
     void clear() {
-        sz=0;
-        // alten vektor komplett löschen und neuen erstellen? bzw shrink_to_fit()
+        size_=0;
     }
 
     // reserve()
     void reserve(size_t n) {
-        if(max_sz<n)
+        if(capacity_<n)
             realloc(n);
     }
 
     // shrink_to_fit()
     void shrink_to_fit() {
-        // auf sz reduzieren
-        if(sz<min_sz) realloc(min_sz);
-        else realloc(sz);
+        // Kapazität auf Anzahl der Elemente reduzieren
+        /* ALT
+        if(size_<MIN_SIZE) realloc(MIN_SIZE);
+        else realloc(size_);
+        */
+        size_ < MIN_SIZE ? realloc(MIN_SIZE) : realloc(size_);
     }
 
     // pop_back
     void pop_back() {
-        if(sz==0) 
+        if(size_==0) 
             throw std::runtime_error{"vector already empty"};
-        else --sz;
+        else --size_;
     }
 
     // capacity()
     size_t capacity() const {
-        return max_sz;
+        return capacity_;
     }
 
     // print()
@@ -135,55 +134,55 @@ class Vector {
             return o;
         }
         o << "[";
-        for(size_type i {0}; i<(sz-1); ++i) {
-            o << values[i] << ", ";
+        for(size_type i {0}; i<(size_-1); ++i) {
+            o << values_[i] << ", ";
         }
-        o << values[sz-1] << "]";
+        o << values_[size_-1] << "]";
         return o;
     }
 
     // iterator begin()
     iterator begin() {
-        return (empty()?end():iterator(values, values+sz)); //end mitgeben
+        return (empty()?end():iterator(values_, values_+size_)); //end mitgeben
     }
 
     const_iterator begin() const {
-        return (empty()?end():const_iterator(values, values+sz));
+        return (empty()?end():const_iterator(values_, values_+size_));
     }
 
     // iterator end()
     iterator end() {
-        return iterator(values+sz, values+sz); 
+        return iterator(values_+size_, values_+size_); 
     }
 
     const_iterator end() const {
-        return const_iterator(values+sz, values+sz);
+        return const_iterator(values_+size_, values_+size_);
     }
 
     // kopierte Methoden
     iterator insert(const_iterator pos, const_reference val) {
         auto diff = pos - begin();
-        if (diff < 0 || static_cast<size_type>(diff) > sz)
+        if (diff < 0 || static_cast<size_type>(diff) > size_)
          throw std::runtime_error("Iterator out of bounds");
         size_type current{static_cast<size_type>(diff)};
-    if (sz >= max_sz)
-        reserve(max_sz * 2); // Achtung Sonderfall, wenn keine Mindestgroesze definiert ist
-    for (auto i{sz}; i-- > current;)
-        values[i + 1] = values[i];
-    values[current] = val;
-    ++sz;
-    return iterator{values + current, values+sz}; //korrekt? values+sz???
+    if (size_ >= capacity_)
+        reserve(capacity_ * 2); // Achtung Sonderfall, wenn keine Mindestgroesze definiert ist
+    for (auto i{size_}; i-- > current;)
+        values_[i + 1] = values_[i];
+    values_[current] = val;
+    ++size_;
+    return iterator{values_ + current, values_+size_}; //korrekt? values+sz???
 }
 
 iterator erase(const_iterator pos) {
     auto diff = pos - begin();
-    if (diff < 0 || static_cast<size_type>(diff) >= sz)
+    if (diff < 0 || static_cast<size_type>(diff) >= size_)
         throw std::runtime_error("Iterator out of bounds");
     size_type current{static_cast<size_type>(diff)};
-    for (auto i{current}; i < sz - 1; ++i)
-        values[i] = values[i + 1];
-    --sz;
-    return iterator{values + current, values+sz}; //korrekt? values+sz???
+    for (auto i{current}; i < size_ - 1; ++i)
+        values_[i] = values_[i + 1];
+    --size_;
+    return iterator{values_ + current, values_+size_}; //korrekt? values+sz???
 }
 
     
@@ -305,7 +304,7 @@ iterator erase(const_iterator pos) {
 
 // operator<<
 template <typename T>
-std::ostream& operator<<(std::ostream &o,const Vector<T> v) {
+std::ostream& operator<<(std::ostream &o,const Vector<T>& v) {
    return v.print(o);
 }
 #endif
