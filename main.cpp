@@ -1,8 +1,8 @@
-#include "vector.h" // Passe den Pfad an, falls du einen Unterordner hast
+#include "vector.h"
 #include <iostream>
 #include <string>
 
-// Benutzerdefinierte Datenstruktur:
+// Eigene Datenstruktur:
 struct Person {
   std::string name;
   int age;
